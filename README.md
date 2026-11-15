@@ -43,6 +43,19 @@ sudo apt remove classroom-plus
 
 Uninstalling the application leaves your personal attendance workspace intact.
 
+## Snap Store beta
+
+A strictly confined **amd64 beta** is available through the [Snap Store](https://snapcraft.io/classroom-plus):
+
+```bash
+sudo snap install classroom-plus --beta
+classroom-plus
+```
+
+Snap handles the `core24` base and runtime dependencies. First use downloads model weights. The app opens a console and a local browser interface; Ctrl+C in the console stops it. Snap records are stored separately under `~/snap/classroom-plus/common/classroom-plus`. The browser requests webcam permission. This beta has the same academic-prototype limits described below.
+
+To remove the Snap, use `sudo snap remove classroom-plus`. Keep a separate backup of important workspace data before removal.
+
 ## Run from source
 
 Use **Python 3.12**. On Linux:
