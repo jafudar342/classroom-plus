@@ -59,3 +59,19 @@ python scripts/package_audit.py dist/classroom-plus_0.1.0_amd64.deb
 ```
 
 New installations create their own empty private workspace. The policy controls what is distributed; it does not prevent users from registering students after installation. No credential scanner can detect every possible kind of private text, so review the clean source and audit report before sharing a release.
+
+**Snap Store beta**
+
+The Snap recipe currently supports amd64 with the Ubuntu `core24` base and strict confinement. Build the standalone app first, then run:
+
+```sh
+python scripts/build_snap.py
+```
+
+The builder audits `dist/ClassroomPlus`, copies that clean bundle, and downloads six named Ubuntu runtime-library packages through APT. It includes their copyright notices. It copies no development workspace, student photos, model weights or account credentials. The completed SquashFS is extracted and checked against an exact staging-file hash manifest, then the application is checked again against `.packageignore`. The artifact and privacy report are written to `dist/`.
+
+Local testing uses `sudo snap install --dangerous ./dist/classroom-plus_0.1.0_amd64.snap`; `--dangerous` admits an unsigned local build and does not disable strict confinement. Store installations do not need that flag. The package requests only `network`, `network-bind` and `desktop`; the external browser handles camera access. It opens a console and the local browser interface. New user data is kept under `~/snap/classroom-plus/common/classroom-plus`, separately from the source and Debian workspaces.
+
+Publisher authentication belongs in the publisher's own terminal using `snapcraft login`. Store registration also requires accepting the publisher agreement on the Snapcraft dashboard. Never place account tokens or exported credentials in source or build inputs. Register with `snapcraft register classroom-plus`; after local tests, upload with `snapcraft upload --release=beta dist/classroom-plus_0.1.0_amd64.snap`. Store review must pass before the beta is available. The Snap uses `Proprietary` metadata while the project has no open-source license; dependency licenses remain separate.
+
+The CPU runtime may report denied GPU discovery or thread-affinity probes inside confinement. The strict package is tested with real face detection, embedding, registration, recognition and report saving; it does not request broader machine-observation permissions solely to suppress those probes. Stop it with Ctrl+C in its own console.
