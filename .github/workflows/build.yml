@@ -1,0 +1,47 @@
+name: Build clean Classroom+ packages
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Audit every tracked source file before building
+        run: python scripts/public_source.py --tracked
+      - name: Install runtime and build dependencies
+        run: python -m pip install -r requirements-app.txt -r packaging/requirements-build.txt
+      - name: Run tests
+        run: python -m unittest discover -s app/tests -p "test_*.py"
+      - name: Build Debian package
+        if: runner.os == 'Linux'
+        run: python scripts/build_package.py --deb
+      - name: Build Windows application
+        if: runner.os == 'Windows'
+        run: python scripts/build_package.py
+      - name: Check Linux runtime
+        if: runner.os == 'Linux'
+        run: dist/ClassroomPlus/ClassroomPlus --workspace "${{ runner.temp }}/classroom-smoke" --check-runtime
+      - name: Check Windows runtime
+        if: runner.os == 'Windows'
+        run: dist/ClassroomPlus/ClassroomPlus.exe --workspace "${{ runner.temp }}/classroom-smoke" --check-runtime
+      - uses: actions/upload-artifact@v6
+        with:
+          name: ClassroomPlus-${{ runner.os }}
+          path: |
+            dist/ClassroomPlus/
+            dist/*.deb
+            dist/*-package-audit.json
+            dist/*.deb.audit.json
+          if-no-files-found: error
+          retention-days: 14

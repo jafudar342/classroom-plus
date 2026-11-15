@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Classroom+
+Comment=Local classroom attendance studio
+Exec=classroom-plus
+Icon=classroom-plus
+Terminal=true
+Categories=Education;
+StartupNotify=false

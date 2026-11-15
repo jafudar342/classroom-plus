@@ -1,0 +1,80 @@
+/* OLED — true black surfaces, violet light and restrained crimson accents. */
+:root[data-theme="oled"] {
+  color-scheme:dark;
+  --paper:#000; --ink:#f6f4fc; --muted:#aaa5ba; --blue:#c5a3ff; --green:#86e3bc;
+  --border:#29252f; --glass:#000; --glass-strong:#08070a; --glass-line:#302a39;
+  --shadow:none;
+}
+.swatch-oled { background:#000; color:#d5b9ff; border-color:#7f51af; box-shadow:inset 0 -3px #ef5b78; }
+[data-theme="oled"] body { background:#000; accent-color:#c5a3ff; }
+[data-theme="oled"] :is(.sidebar,.topbar,.panel,.overview-card,.student-card,.history-card,.sample-card,.result-stats,.result-photo,.roster-result,.empty-state,.camera-area,.input-preview,.about-hero,.lecture-completion) {
+  background:#000; border-color:var(--glass-line); box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none;
+}
+[data-theme="oled"] :is(.sidebar,.topbar) { border-color:#242027; }
+[data-theme="oled"] .brand-symbol { background:#000; border-color:#8f6bb8; color:#fff; }
+[data-theme="oled"] :is(.brand-plus,.heading-dot,.brand-symbol>span) { color:#d5b9ff; }
+[data-theme="oled"] :is(.brand-sub,.sidebar-note p,.sidebar-bottom small,.workspace-label,.spinner-nav-divider) { color:#aaa5ba; }
+[data-theme="oled"] :is(.sidebar-note,.sidebar-bottom) { color:#f6f4fc; border-color:#302a39; }
+[data-theme="oled"] :is(.nav-item,.nav-icon) { color:#c5c0d0; }
+[data-theme="oled"] .nav-item:hover:not(.active) { background:#100d16; color:#fff; }
+[data-theme="oled"] .nav-item.active { background:#1d112e; color:#f5ebff; border-color:#77509f; box-shadow:inset 3px 0 #d5b9ff; }
+[data-theme="oled"] .nav-item.active .nav-icon { color:#d5b9ff; }
+[data-theme="oled"] :is(.nav-arrow,.nav-count) { color:#d5b9ff; border-color:#62477c; }
+[data-theme="oled"] .avatar { background:#160e20; border:1px solid #77509f; color:#e4cfff; }
+[data-theme="oled"] :is(.eyebrow,.text-button,.text-link,.details summary,.student-card button) { color:#c5a3ff; }
+[data-theme="oled"] :is(.how-panel h2,.how-list strong,.sample-card h3,.empty-state h2) { color:var(--ink); }
+[data-theme="oled"] :is(.page-heading p,.panel-header p,.how-list p,.sample-card p,.student-card p,.history-card p,.attendance-row small,.directory-toolbar>span,.directory-actions>span,.method-note p,.dialog-intro,label,.checkbox-label) { color:var(--muted); }
+[data-theme="oled"] .student-course { color:#c5c0d0!important; }
+[data-theme="oled"] :is(input,textarea)::placeholder { color:#938b9f!important; }
+[data-theme="oled"] :is(.overview-card:nth-child(1),.overview-card:nth-child(2),.overview-card:nth-child(3)) { border-top-color:#684384; }
+[data-theme="oled"] .overview-card:nth-child(2) { border-top-color:#915063; }
+[data-theme="oled"] .overview-card:nth-child(3) { border-top-color:#736d82; }
+[data-theme="oled"] :is(.overview-icon.blue,.blue) { background:#21142e; color:#d5b9ff; }
+[data-theme="oled"] :is(.overview-icon.green,.green) { background:#10271e; color:#86e3bc; }
+[data-theme="oled"] :is(.overview-icon.amber,.amber) { background:#2a141c; color:#ff9ab0; }
+[data-theme="oled"] .button.primary { background:#b995f1; color:#160d21; border-color:#d5b9ff; box-shadow:0 3px 18px #a15fe51a; }
+[data-theme="oled"] .button.primary:hover:not(:disabled) { background:#d3b5ff; color:#160d21; box-shadow:0 3px 22px #a15fe52b; }
+[data-theme="oled"] .button:is(#recognize-button,#register-capture) { background:#b995f1; border-color:#d5b9ff; color:#160d21; box-shadow:0 3px 20px #a15fe526; }
+[data-theme="oled"] .button.register-open { background:#f2edf9; border-color:#fff; color:#17101e; box-shadow:none; }
+[data-theme="oled"] .button#live-button { background:#23122e; border-color:#a879d7; color:#e5cbff; box-shadow:none; }
+[data-theme="oled"] .button#live-button::before { background:#ce9eff; box-shadow:0 0 0 4px #ce9eff16; }
+[data-theme="oled"] .button:is(#live-button,#video-attendance-button)[aria-pressed="true"] { background:#34121e; border-color:#d95f7b; color:#ffb0c3; }
+[data-theme="oled"] .button:is(#recognize-button,#register-capture,.register-open,#live-button):hover:not(:disabled) { filter:brightness(1.1); box-shadow:0 4px 18px #a15fe526; }
+[data-theme="oled"] :is(.button.secondary,.icon-button,.lecture-capture,.camera-status,.selected-file-name,.image-action) { background:#0e0b13; color:var(--ink); border-color:#42344f; box-shadow:none; }
+[data-theme="oled"] :is(.button.secondary,.icon-button):hover:not(:disabled) { background:#21142e; border-color:#85609f; }
+[data-theme="oled"] .button:disabled { box-shadow:none; }
+[data-theme="oled"] :is(.capture-action-bar,.settings-save-bar,.theme-options,dialog) { background:#08070a; border-color:#4b365e; box-shadow:0 8px 30px #0009; backdrop-filter:none; -webkit-backdrop-filter:none; }
+[data-theme="oled"] dialog::backdrop { background:#000b; backdrop-filter:blur(5px); }
+[data-theme="oled"] :is(input:not([type=checkbox]):not([type=range]),select,textarea) { color:var(--ink); background:#08070a; border-color:#4b4055; }
+[data-theme="oled"] :is(.tabs,.student-photo,.lecture-roster thead,th) { background:#0e0b13; color:#c5c0d0; border-color:#302a39; }
+[data-theme="oled"] .tab.active { background:#241532; border-color:#77509f; color:#e3cbff; }
+[data-theme="oled"] :is(.upload-area,.settings-model,.spinner-stage) { background:#000; border-color:#77509f; }
+[data-theme="oled"] .upload-area:hover,[data-theme="oled"] .upload-area.drag { background:#100919; border-color:#d5b9ff; }
+[data-theme="oled"] :is(.upload-art,.how-list li>span,.about-credit-avatar,.about-feature-icon) { background:#170e23; color:#d5b9ff; border-color:#4f3867; }
+[data-theme="oled"] :is(.camera-glyph,.camera-area p) { color:#aaa5ba; }
+[data-theme="oled"] .camera-guide i { border-color:#c5a3ff; }
+[data-theme="oled"] :is(.local-badge,.model-pill,.step-tag,.method-note,.lecture-notice,.settings-warning,.session-mini-stats>div,.session-next) { background:#100c16; border-color:#42304f; color:#c5c0d0; }
+[data-theme="oled"] :is(.status-pill,.Unconfirmed) { background:#100c16; color:#c5c0d0; border-color:#4b4055; }
+[data-theme="oled"] :is(.status-pill.Present,.status-pill.Matched) { background:#0c241b; color:#86e3bc; border-color:#295d48; }
+[data-theme="oled"] :is(.status-pill.Absent,.status-pill.Unknown) { background:#2a1019; color:#ff9ab0; border-color:#793348; }
+[data-theme="oled"] .status-pill.Review { background:#2b210d; color:#f4ce89; border-color:#70582d; }
+[data-theme="oled"] :is(.attendance-row,td,.student-card-actions,.dialog-footer,.profile-section-title) { border-color:#302a39; }
+[data-theme="oled"] td:last-child { color:var(--muted); }
+[data-theme="oled"] :is(.theme-selected,.settings-model-step,.settings-model-availability) { color:#d5b9ff; }
+[data-theme="oled"] .theme-options>button[aria-pressed="true"] { background:#21142e; border-color:#77509f; }
+[data-theme="oled"] :is(button,a,input,select,textarea,[tabindex]):focus-visible { outline:2px solid #d5b9ff; outline-offset:3px; }
+[data-theme="oled"] input[type=checkbox] { accent-color:#c5a3ff; }
+[data-theme="oled"] #lecture-capture-banner.session-hero { background:#000; border-color:#77509f; }
+[data-theme="oled"] :is(.session-steps,.about-monogram) { background:#000; border-color:#4b365e; box-shadow:none; }
+[data-theme="oled"] .session-steps li.current { color:#d5b9ff; }
+[data-theme="oled"] .session-steps li.current>span { background:#c5a3ff; color:#160d21; }
+[data-theme="oled"] .about-brand-orbit { border-color:#5c3977; }
+[data-theme="oled"] .orbit-two::after { background:#ef5b78; box-shadow:0 0 0 5px #ef5b7810; }
+[data-theme="oled"] .about-feature-icon.rose { color:#ff9ab0; background:#2a1019; }
+[data-theme="oled"] #session-progress::-webkit-progress-value,[data-theme="oled"] .dashboard-bar progress::-webkit-progress-value { background:#b995f1; }
+[data-theme="oled"] #session-progress::-moz-progress-bar,[data-theme="oled"] .dashboard-bar progress::-moz-progress-bar { background:#b995f1; }
+[data-theme="oled"] .sudoku-cell.selected { background:#3a2050; color:#fff; }
+[data-theme="oled"] .sudoku-cell.invalid { color:#ff9ab0; }
+/* Keep registration distinct even when it also uses the secondary-button class. */
+:root[data-theme="oled"] .button:is(#recognize-button,#live-button,.register-open,#register-capture).register-open,:root[data-theme="oled"] .button:is(#recognize-button,#live-button,.register-open,#register-capture).register-open:hover:not(:disabled) { background:#f2edf9; border-color:#fff; color:#17101e; box-shadow:none; }
+[data-theme="oled"] .result-stat:first-child strong { color:var(--green); }
