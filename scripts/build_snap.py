@@ -41,7 +41,9 @@ def metadata(version):
                              'Processing stays local. Starts with zero students. Internet is required for model downloads. '
                              'Recognition thresholds are provisional; teacher review is required. Reliable recognition '
                              'through face coverings and liveness detection have not been established.'),
-                website='https://github.com/jafudar342/classroom-plus',
+                links={'website':['https://github.com/jafudar342/classroom-plus'],
+                       'source-code':['https://github.com/jafudar342/classroom-plus'],
+                       'issues':['https://github.com/jafudar342/classroom-plus/issues']},
                 apps={'classroom-plus':dict(command='bin/classroom-plus', plugs=['network','network-bind','desktop'])})
 
 

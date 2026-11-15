@@ -15,6 +15,8 @@ class SnapPackageTests(unittest.TestCase):
         data=metadata('0.1.0')
         self.assertEqual(data['confinement'],'strict')
         self.assertEqual(data['base'],'core24')
+        self.assertNotIn('website',data)
+        self.assertEqual(data['links']['website'],['https://github.com/jafudar342/classroom-plus'])
         self.assertEqual(data['apps']['classroom-plus']['plugs'],['network','network-bind','desktop'])
         self.assertIn('$SNAP_USER_COMMON',LAUNCHER)
         self.assertNotIn('/home/',LAUNCHER)
