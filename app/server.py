@@ -20,6 +20,8 @@ from video_attendance import VideoAttendance
 from analytics import Analytics
 from evaluation import Evaluation
 from file_cache import FileCache
+from notes import Notes
+from reminders import Reminders
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = Path(__file__).resolve().parent / "web"
@@ -87,6 +89,22 @@ class Base(tornado.web.RequestHandler):
             self.write({"error": "Processing failed. Check the terminal for details, then try another photo."})
         finally:
             self.application.busy = False
+
+
+class RemindersAction(Base):
+    async def get(self):
+        await self.job(self.application.reminders.read)
+
+    async def post(self):
+        await self.job(self.application.reminders.save, self.json_body())
+
+
+class NotesAction(Base):
+    async def get(self):
+        await self.job(self.application.notes.read)
+
+    async def post(self):
+        await self.job(self.application.notes.save, self.json_body())
 
 
 class Index(Base):
@@ -437,7 +455,8 @@ class EvaluationRun(Base):
 
 def make_app(root=ROOT):
     application = tornado.web.Application([
-        (r"/", Index), (r"/api/state", State), (r"/api/session", Session), (r"/api/recognize", Recognize),
+        (r"/api/reminders", RemindersAction),
+        (r"/", Index), (r"/api/notes", NotesAction), (r"/api/state", State), (r"/api/session", Session), (r"/api/recognize", Recognize),
         (r"/api/register/preview", Preview), (r"/api/register", Register), (r"/api/register/roster", RosterRegistration),
         (r"/api/dashboard(?:/(monthly.csv))?", Dashboard),
         (r"/api/evaluation", EvaluationCatalog),
@@ -467,6 +486,8 @@ def make_app(root=ROOT):
        xsrf_cookie_kwargs={"samesite": "Strict"}, debug=False,
        cookie_secret=__import__("secrets").token_hex(32))
     application.engine = Engine(root)
+    application.notes = Notes(Path(root))
+    application.reminders = Reminders(Path(root))
     application.lectures = LectureStore(Path(root), application.engine)
     application.video = VideoAttendance(application.lectures)
     application.timetable = Timetable(Path(root), application.engine, application.lectures)

@@ -1,5 +1,13 @@
 # Classroom+
 
+## Reminders
+
+Open **Reminders** to add a short task with its date and time, edit it, mark it complete, reopen it, or delete it. Times are entered and displayed in the browser’s local time zone and saved as UTC. Reminders persist in the workspace at `data/reminders.json`. Due reminders trigger an in-app alert while the tab is open (checked every 30 seconds); overdue items appear when you return. The app does not send alerts while closed. Reload reminders after a conflicting edit from another window.
+
+## Notes and sticky notes
+
+Open **Notes** to save short notes as cards, edit them, or delete them. Choose **Show as sticky** to keep a note visible across app sections. Drag its yellow header to move it, or focus the header and use arrow keys. The cross hides the sticky while keeping its saved card. Notes and positions persist in the current workspace under `data/notes.json`. Reload notes after a conflicting edit from another tab.
+
 Start the local app from the project directory:
 
 ```bash
@@ -124,3 +132,9 @@ Settings offers RetinaFace, OpenCV, YuNet, CenterFace and MTCNN detectors, and F
 Embedding changes rebuild every registered student's template from saved reference photos, preserving manually approved face selections using the original enrollment detector. App registration crops are already selected and aligned. Every saved reference must remain usable; missing or ambiguous sources stop activation with the old gallery intact. Configuration, metadata and templates are backed up and committed together. Detector-only changes retain templates. Restoring an archive from another embedding model re-encodes its saved photos rather than mixing vectors. Saved attendance and evaluation experiments retain their original results.
 
 Matching thresholds are model-dependent and remain provisional until evaluated using independent captures. Existing threshold values are retained for explicit teacher adjustment. A different model does not guarantee better recognition of covered faces.
+
+## Guided reference registration (local development)
+
+Registration shows a three-photo starting goal and tips for useful variation. After selecting a detected face, review its size, sharpness and lighting feedback. Checks are advisory and use provisional heuristics; they do not establish identity, pose, independent accuracy or reliable recognition through face coverings. A warning changes the save action to **Save despite warnings** and records the acknowledgement with the local registration audit.
+
+**Keep this open to add more reference photos** is selected by default. After the first successful save, roll number and name stay fixed and subsequent photos add references to that student. Select multiple photos to confirm each face in turn; **Skip this photo** moves past an unwanted batch item. **Done** finishes the session. Uncheck the keep-open option to close after saving the last selected photo. Exact copies of a previously saved reference are rejected rather than increasing the template count. Three photos are a suggestion, not a mandatory minimum or an accuracy guarantee.

@@ -19,6 +19,7 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageOps, UnidentifiedImageError
 from file_cache import FileCache
+from registration_quality import reference_quality
 
 
 class AppError(Exception):
@@ -768,7 +769,8 @@ class Engine:
             del self.previews[next(iter(self.previews))]
         preview_id = uuid.uuid4().hex
         self.previews[preview_id] = {"rgb": rgb, "faces": faces, "expires": time.monotonic() + 900}
-        return {"preview_id": preview_id, "faces": [{"index": index, "image": image_url(face["face"])} for index, face in enumerate(faces)]}
+        return {"preview_id": preview_id, "faces": [{"index": index, "image": image_url(face["face"]),
+                "quality": reference_quality(face, rgb)} for index, face in enumerate(faces)]}
 
     def register_without_photo(self, payload):
         roll = self.valid_roll(payload.get("roll_number"))
@@ -803,7 +805,8 @@ class Engine:
         if (not isinstance(payload.get("roll_number"), str)
                 or not isinstance(payload.get("name"), str)
                 or not isinstance(payload.get("preview_id"), str)
-                or type(payload.get("add_reference", False)) is not bool):
+                or type(payload.get("add_reference", False)) is not bool
+                or type(payload.get("quality_acknowledged", False)) is not bool):
             raise AppError("Enter a valid roll number, student name, and selected photo.")
         roll = str(payload.get("roll_number", "")).strip()
         name = str(payload.get("name", "")).strip()
@@ -831,6 +834,13 @@ class Engine:
         if class_id and (not group or existing):
             raise AppError("Choose a valid class for a new student. Edit class rosters to enroll existing students.")
         face = preview["faces"][index]
+        photo_quality = reference_quality(face, preview.get("rgb"))
+        photo_content = image_bytes(face["face"])
+        photo_hash = hashlib.sha256(photo_content).hexdigest()
+        if existing:
+            for reference in (self.root / "data/reference" / roll).glob("*"):
+                if reference.is_file() and hashlib.sha256(reference.read_bytes()).hexdigest() == photo_hash:
+                    raise AppError("This exact reference photo is already saved. Choose a different photo or capture a new frame.")
         query = self.encode(face["face"])
         entries = {str(r): {"name": str(n), "vector": v, "sum": s, "count": int(c)} for r, n, v, s, c in zip(rolls, names, vectors, sums, counts)}
         if roll in entries:
@@ -874,14 +884,14 @@ class Engine:
         original = {path: path.read_bytes() if path.exists() else None for path in files}
         try:
             # Store only the explicitly selected, aligned face as the new reference.
-            photo_content = image_bytes(face["face"])
             atomic_write(photo_path, photo_content)
             for path, content in files.items():
                 atomic_write(path, content)
             audit = {"roll_number": roll, "name": name, "face_index": index,
                      "photo_sha256": hashlib.sha256(photo_content).hexdigest(),
                      "created_utc": now(), "photo": str(photo_path.relative_to(self.root)),
-                     "action": "add_reference" if existing else "register", "backup": str(backup.relative_to(self.root))}
+                     "action": "add_reference" if existing else "register", "backup": str(backup.relative_to(self.root)),
+                     "photo_quality": photo_quality, "quality_acknowledged": payload.get("quality_acknowledged", False)}
             atomic_write(self.root / "logs/app-registration" / f"{photo_id}.json", json.dumps(audit, indent=2).encode())
         except Exception:
             for path, content in original.items():
@@ -893,7 +903,8 @@ class Engine:
             raise
         self.metadata = metadata
         del self.previews[payload["preview_id"]]
-        return {"roll_number": roll, "name": existing["name"] if existing else name, "registered_students": len(ordered)}
+        return {"roll_number": roll, "name": existing["name"] if existing else name, "registered_students": len(ordered),
+                "reference_count": entries[roll]["count"], "quality": photo_quality}
 
     @staticmethod
     def _roster_bytes(roster):

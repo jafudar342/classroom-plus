@@ -67,7 +67,7 @@ def audit_stage(stage, expected):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--version',default='0.1.0')
+    parser.add_argument('--version',default='0.2.0')
     args=parser.parse_args()
     if not re.fullmatch(r'[0-9]+(?:\.[0-9]+){2}',args.version):parser.error('Use a three-part numeric version.')
     if platform.machine()!='x86_64':parser.error('This recipe currently supports amd64 only.')

@@ -31,6 +31,8 @@ let activeProfile = null;
 let profileDirty = false;
 let registrationQueue = [];
 let registrationReturnRoll = null;
+let registrationIdentity = null;
+let registrationReferenceCount = 0;
 let availableCameras = [], preferredCameraId = '', cameraListGeneration = 0, cameraListLoading = false;
 let cameraListMessage = 'Enable camera to reveal available camera names.', cameraAccessGranted = false;
 let cameraOpening = false, registrationCameraOpening = false;
@@ -168,8 +170,11 @@ function updateControls() {
   $("source-note").textContent = source === "camera" ? (live ? "Live preview · Stop to save a capture." : "Capture a frame to save a report. Start a lecture to enable video attendance.") : "Clear, front-facing photos work best.";
   if(captureLecture) $("source-note").textContent="Add captures one at a time. Review the lecture when you are finished.";
   for (const id of ["register-no-photo", "register-upload", "register-camera-start", "register-capture", "detect-register", "register-roll", "register-name", "add-reference", "change-photo"]) {
-    $(id).disabled = busy;
+    $(id).disabled = busy || Boolean(registrationIdentity && ["register-roll", "register-name", "add-reference"].includes(id));
   }
+  $("finish-registration").disabled = busy;
+  $("skip-register-photo").disabled = busy;
+  $("keep-registering").disabled = busy;
   $("sample-button").disabled = busy || !state?.sample_available;
   $("save-student").disabled = busy || !registrationPreview || selectedFace === null;
   for (const id of ["save-profile", "profile-add-photo", "add-custom-field", "show-delete-student", "confirm-delete-student"]) {
@@ -599,17 +604,39 @@ function clearRegistrationSelection() {
   $("face-selection").hidden = true;
   $("face-options").replaceChildren();
   $("save-student").disabled = true;
+  $("registration-quality").hidden = true;
+  $("registration-quality").replaceChildren();
+  updateRegistrationGuide();
 }
 function registrationMessage(message, error = false) {
   $("registration-message").textContent = message;
   $("registration-message").classList.toggle("error", error);
 }
+function updateRegistrationGuide() {
+  $("registration-progress").textContent = `${registrationReferenceCount} reference${registrationReferenceCount === 1 ? "" : "s"} saved · ${registrationReferenceCount >= 3 ? "keep useful variation" : "aim for 3"}`;
+  const quality = registrationPreview?.faces?.find((face) => face.index === selectedFace)?.quality;
+  const warning = quality?.status === "retake";
+  $("save-student").textContent = warning ? "Save despite warnings →" : $("add-reference").checked ? "Add reference →" : "Register student →";
+  $("registration-quality").hidden = !quality;
+  if (quality) $("registration-quality").innerHTML = `<h4>${warning ? "Retake recommended" : "Basic quality checks passed"}</h4><ul>${quality.checks.map((check) => `<li class="${check.ok ? "quality-pass" : "quality-warning"}"><strong>${check.ok ? "✓" : "!"} ${escapeHTML(check.label)}</strong><span>${check.ok ? "Looks usable" : escapeHTML(check.tip)}</span></li>`).join("")}</ul><p>Advisory checks only. Confirm the correct person before saving${warning ? "; you can save despite these warnings if needed" : ""}.</p>`;
+}
+function finishRegistration() {
+  const returnRoll = registrationReturnRoll;
+  $("register-dialog").close();
+  if (returnRoll) void openProfile(returnRoll);
+}
+$("finish-registration").addEventListener("click", finishRegistration);
 function openRegistration(student = null) {
   if (busy) { toast("Wait for the current photo to finish processing."); return; }
   stopCamera();
   registrationGeneration++;
   stopRegistrationCamera();
   $("register-form").reset();
+  registrationIdentity = null;
+  registrationReferenceCount = student?.references || 0;
+  $("finish-registration").hidden = true;
+  $("skip-register-photo").hidden = true;
+  $("keep-registering").checked = true;
   renderCameraList();
   void refreshCameraList();
   registrationImage = null;
@@ -626,29 +653,32 @@ function openRegistration(student = null) {
   }
   $("save-student").textContent = student ? "Add reference →" : "Register student →";
   $("registration-title").textContent = student ? "Add reference photos" : "Register a student";
-  $("register-upload").textContent = student ? "↑ Choose photos" : "↑ Choose photo";
-  $("register-file").multiple = Boolean(student);
+  $("register-upload").textContent = "↑ Choose photos";
+  $("register-file").multiple = true;
   $("register-class").value = student ? "" : selectedClassId === "all-students" ? "" : selectedClassId;
   $("register-class").disabled = Boolean(student);
   $("register-no-photo").hidden = Boolean(student);
   $("register-dialog").showModal();
+  updateControls();
 }
 document.querySelectorAll(".register-open").forEach((button) => button.addEventListener("click", () => openRegistration()));
 $("close-register").addEventListener("click", () => $("register-dialog").close());
-$("register-dialog").addEventListener("close", () => { registrationGeneration++; registrationQueue = []; clearRegistrationSelection(); stopRegistrationCamera(); });
+$("register-dialog").addEventListener("close", () => { registrationGeneration++; registrationQueue = []; registrationIdentity = null; clearRegistrationSelection(); stopRegistrationCamera(); });
 $("add-reference").addEventListener("change", () => {
   const adding = $("add-reference").checked;
   $("register-no-photo").hidden = adding;
   $("save-student").textContent = adding ? "Add reference →" : "Register student →";
   $("registration-title").textContent = adding ? "Add reference photos" : "Register a student";
-  $("register-upload").textContent = adding ? "↑ Choose photos" : "↑ Choose photo";
-  $("register-file").multiple = adding;
+  $("register-upload").textContent = "↑ Choose photos";
+  $("register-file").multiple = true;
+  updateRegistrationGuide();
   $("register-class").disabled = adding;
 });
 $("register-upload").addEventListener("click", () => $("register-file").click());
 function setRegistrationImage(image) {
   registrationGeneration++;
   registrationImage = image;
+  $("skip-register-photo").hidden = registrationQueue.length === 0;
   clearRegistrationSelection();
   stopRegistrationCamera();
   $("register-photo").src = image;
@@ -656,13 +686,17 @@ function setRegistrationImage(image) {
   $("detect-register").hidden = false;
   registrationMessage("Photo ready. Find faces, then confirm the correct student.");
 }
+$("skip-register-photo").addEventListener("click", () => {
+  if (busy || !registrationQueue.length) return;
+  setRegistrationImage(registrationQueue.shift());
+  registrationMessage("Photo skipped. Find faces in the next photo to continue.");
+});
 $("register-file").addEventListener("change", async (event) => {
   const generation = ++registrationGeneration;
   try {
     if (event.target.files[0]) {
       const files = Array.from(event.target.files);
       if (files.length > 10 || files.reduce((sum, file) => sum + file.size, 0) > 50_000_000) throw new Error("Choose up to 10 photos with a combined size below 50 MB.");
-      if (files.length > 1 && !$("add-reference").checked) throw new Error("Register the student with one photo first, then add more references.");
       const images = await Promise.all(files.map(readFile));
       if (generation === registrationGeneration && $("register-dialog").open) {
         registrationQueue = images.slice(1);
@@ -720,7 +754,7 @@ $("detect-register").addEventListener("click", async () => {
     if (generation !== registrationGeneration || !$("register-dialog").open) return;
     registrationPreview = preview;
     $("face-selection").hidden = false;
-    $("face-options").innerHTML = registrationPreview.faces.map((face) => `<button type="button" class="face-option" data-face-index="${face.index}" aria-pressed="false"><img src="${face.image}" alt="Detected face ${face.index + 1}">Face ${face.index + 1}</button>`).join("");
+    $("face-options").innerHTML = registrationPreview.faces.map((face) => `<button type="button" class="face-option" data-face-index="${face.index}" aria-pressed="false"><img src="${face.image}" alt="Detected face ${face.index + 1}">Face ${face.index + 1}<span class="face-quality-badge">${face.quality?.status === "retake" ? "Retake advised" : "Select to review"}</span></button>`).join("");
     registrationMessage(`${registrationPreview.faces.length} face${registrationPreview.faces.length === 1 ? "" : "s"} found. Select the student to confirm.`);
   } catch (error) { if (generation === registrationGeneration && $("register-dialog").open) registrationMessage(error.message, true); }
   finally { busy = false; $("detect-register").disabled = false; updateControls(); }
@@ -735,6 +769,7 @@ $("face-options").addEventListener("click", (event) => {
     option.setAttribute("aria-pressed", selected);
   });
   $("save-student").disabled = false;
+  updateRegistrationGuide();
 });
 $("register-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -750,11 +785,33 @@ $("register-form").addEventListener("submit", async (event) => {
       roll_number: $("register-roll").value.trim(), name: $("register-name").value.trim(),
       add_reference: $("add-reference").checked, preview_id: registrationPreview.preview_id, face_index: selectedFace,
       class_id: $("add-reference").checked ? "" : $("register-class").value,
+      quality_acknowledged: registrationPreview.faces?.find((face) => face.index === selectedFace)?.quality?.status === "retake",
     });
-    if (generation === registrationGeneration && $("register-dialog").open && registrationQueue.length) {
+    if (generation !== registrationGeneration || !$("register-dialog").open) {
+      await refreshAfterSave(`Reference saved for ${saved.name}.`);
+      return;
+    }
+    registrationIdentity = {roll_number: saved.roll_number, name: saved.name};
+    registrationReferenceCount = saved.reference_count ?? registrationReferenceCount + 1;
+    $("register-roll").value = saved.roll_number;
+    $("register-name").value = saved.name;
+    $("add-reference").checked = true;
+    $("register-class").disabled = true;
+    $("register-no-photo").hidden = true;
+    $("registration-title").textContent = "Build the reference set";
+    $("finish-registration").hidden = false;
+    updateRegistrationGuide();
+    if (registrationQueue.length) {
       const next = registrationQueue.shift();
       setRegistrationImage(next);
       registrationMessage(`Reference saved. Next photo ready (${registrationQueue.length + 1} remaining). Find faces to continue.`);
+      await refreshAfterSave(`Reference saved for ${saved.name}.`);
+    } else if ($("keep-registering").checked) {
+      registrationImage = null;
+      clearRegistrationSelection();
+      $("register-photo-area").hidden = true;
+      $("detect-register").hidden = true;
+      registrationMessage(`Reference saved. ${registrationReferenceCount < 3 ? "Add a different clear photo next, or choose Done to finish." : "Your reference set is ready to review. Add more useful variation or choose Done."}`);
       await refreshAfterSave(`Reference saved for ${saved.name}.`);
     } else {
       const returnToProfile = generation === registrationGeneration && $("register-dialog").open && returnRoll;

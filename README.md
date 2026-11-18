@@ -18,17 +18,20 @@ Classroom+ brings student registration, photo and webcam attendance, classes, su
 - Download attendance sheets, annotated images and photo reports.
 - Evaluate independent photos and configure matching thresholds and model profiles.
 - Choose Light, Dark, Pop or true-black OLED appearance.
+- Save notes as cards and pin draggable sticky notes across app sections.
+- Use the built-in calculator with keyboard controls.
+- Schedule local reminders with editing, completion tracking, and due alerts while the app is open.
 - Take a break with chess, a 16-color spinner or Sudoku.
 
 ## Install on Linux
 
-The **v0.1.0** package targets **64-bit Ubuntu 24.04, Zorin OS 18, or compatible systems with glibc 2.39 or newer**. Other distributions and older versions have not been verified.
+The **v0.2.0** package targets **64-bit Ubuntu 24.04, Zorin OS 18, or compatible systems with glibc 2.39 or newer**. Other distributions and older versions have not been verified.
 
-1. Download `classroom-plus_0.1.0_amd64.deb` from [Releases](https://github.com/jafudar342/classroom-plus/releases).
+1. Download `classroom-plus_0.2.0_amd64.deb` from [Releases](https://github.com/jafudar342/classroom-plus/releases).
 2. Open it with your software installer, or run in the download directory:
 
    ```bash
-   sudo apt install ./classroom-plus_0.1.0_amd64.deb
+   sudo apt install ./classroom-plus_0.2.0_amd64.deb
    ```
 
 3. Open **Classroom+** from the applications menu, or run `classroom-plus`.

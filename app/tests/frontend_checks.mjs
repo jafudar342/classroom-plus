@@ -396,4 +396,59 @@ function cameraTrack(id='usb') {
  assert.equal(app.element('stop-camera').hidden,true);assert.match(app.element('toast').textContent,/did not become ready/);
  play.resolve();await new Promise(resolve=>setImmediate(resolve));
 }
-console.log('PASS: 38 frontend checks, including camera discovery, exact device selection, switching, disconnects, and evaluation safeguards.');
+{
+ const app=setup();
+ app.run("registrationPreview={faces:[{index:0,quality:{status:'retake',checks:[{label:'Lighting',ok:false,tip:'Face a soft light.'}]}}]};selectedFace=0;updateRegistrationGuide()");
+ assert.match(app.element('save-student').textContent,/Save despite warnings/);
+ assert.match(app.element('registration-quality').innerHTML,/Face a soft light/);
+ app.run("clearRegistrationSelection()");
+ assert.equal(app.element('registration-quality').hidden,true);
+}
+{
+ const app=setup();let payload;
+ app.run("registrationPreview={preview_id:'first',faces:[{index:0,quality:{status:'retake',checks:[]}}]};selectedFace=0;document.getElementById('register-dialog').open=true");
+ app.element('register-roll').value='77';app.element('register-name').value='Synthetic';app.element('keep-registering').checked=true;
+ app.context.fetch=async(path,options)=>{
+   if(path==='/api/register'){payload=JSON.parse(options.body);return response(200,{roll_number:'77',name:'Synthetic',reference_count:1});}
+   return response(200,fixture);
+ };
+ await app.element('register-form').listeners.submit[0]({preventDefault(){}});
+ assert.equal(payload.quality_acknowledged,true);
+ assert.equal(app.element('register-dialog').open,true);
+ assert.equal(app.element('add-reference').checked,true);
+ assert.equal(app.element('register-roll').disabled,true);
+ assert.equal(app.element('register-name').disabled,true);
+ assert.equal(app.element('finish-registration').hidden,false);
+ assert.equal(app.run('registrationPreview'),null);
+ assert.match(app.element('registration-progress').textContent,/1 reference saved/);
+ app.element('finish-registration').listeners.click[0]();assert.equal(app.element('register-dialog').open,false);
+}
+{
+ const app=setup();let requests=[];
+ app.run("registrationPreview={preview_id:'first'};selectedFace=0;registrationQueue=['next-photo'];document.getElementById('register-dialog').open=true");
+ app.element('register-roll').value='77';app.element('register-name').value='Synthetic';
+ app.context.fetch=async(path,options)=>{
+  if(path==='/api/register'){requests.push(JSON.parse(options.body));return response(200,{roll_number:'77',name:'Synthetic',reference_count:requests.length});}
+  return response(200,fixture);
+ };
+ await app.element('register-form').listeners.submit[0]({preventDefault(){}});
+ app.run("registrationPreview={preview_id:'next'};selectedFace=0");
+ await app.element('register-form').listeners.submit[0]({preventDefault(){}});
+ assert.equal(requests[0].add_reference,undefined);assert.equal(requests[1].add_reference,true);
+ assert.equal(requests[1].class_id,'');
+}
+{
+ const app=setup();app.run("registrationQueue=['next-photo'];registrationImage='bad-photo';registrationPreview={preview_id:'old'};selectedFace=0");
+ app.element('skip-register-photo').listeners.click[0]();
+ assert.equal(app.run('registrationImage'),'next-photo');assert.equal(app.run('registrationPreview'),null);
+ assert.equal(app.element('save-student').disabled,true);
+}
+{
+ const app=setup(),request=deferred();
+ app.run("registrationPreview={preview_id:'first'};selectedFace=0;document.getElementById('register-dialog').open=true");
+ app.element('register-roll').value='77';app.element('register-name').value='Synthetic';app.context.fetch=path=>path==='/api/register'?request.promise:Promise.resolve(response(200,fixture));
+ const pending=app.element('register-form').listeners.submit[0]({preventDefault(){}});
+ app.element('register-dialog').close();request.resolve(response(200,{roll_number:'77',name:'Synthetic',reference_count:1}));await pending;
+ assert.equal(app.run('registrationIdentity'),null);assert.equal(app.element('register-dialog').open,false);
+}
+console.log('PASS: 43 frontend checks, including guided enrollment, quality warnings, batch references, camera lifecycle and stale responses.');

@@ -13,7 +13,7 @@ from package_audit import audit_bundle, audit_deb
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--deb',action='store_true');parser.add_argument('--version',default='0.1.0')
+    parser.add_argument('--deb',action='store_true');parser.add_argument('--version',default='0.2.0')
     args=parser.parse_args()
     import re
     if not re.fullmatch(r'[0-9]+(?:\.[0-9]+){2}',args.version):parser.error('Use a numeric version such as 0.1.0')
